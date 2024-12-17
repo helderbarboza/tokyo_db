@@ -14,7 +14,8 @@ defmodule TokyoDB.Application do
       # Start a worker by calling: TokyoDB.Worker.start_link(arg)
       # {TokyoDB.Worker, arg},
       # Start to serve requests, typically the last entry
-      TokyoDBWeb.Endpoint
+      TokyoDBWeb.Endpoint,
+      {TokyoDB.Database.KV, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

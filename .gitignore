@@ -27,3 +27,6 @@ tokyo_db-*.tar
 
 # Ignore lexical
 /.lexical
+
+# Ignore mnesia files
+/.mnesia

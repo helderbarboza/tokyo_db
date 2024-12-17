@@ -51,3 +51,5 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :mnesia, :dir, String.to_charlist(Path.join([".mnesia", to_string(Mix.env())]))

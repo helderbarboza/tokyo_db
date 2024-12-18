@@ -22,8 +22,8 @@ defmodule TokyoDB.Database.TransactionLog do
     GenServer.start_link(__MODULE__, %{}, opts)
   end
 
-  @spec create(any()) :: :ok | {:error, atom()}
-  def create(client_name) do
+  @spec insert(any()) :: :ok | {:error, atom()}
+  def insert(client_name) do
     {:atomic, result} =
       Mnesia.transaction(fn ->
         case Mnesia.match_object({@table, client_name, :_}) do

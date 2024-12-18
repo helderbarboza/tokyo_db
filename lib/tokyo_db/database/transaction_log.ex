@@ -22,6 +22,81 @@ defmodule TokyoDB.Database.TransactionLog do
     GenServer.start_link(__MODULE__, %{}, opts)
   end
 
+  @spec create(any()) :: :ok | {:error, atom()}
+  def create(client_name) do
+    {:atomic, result} =
+      Mnesia.transaction(fn ->
+        case Mnesia.match_object({@table, client_name, :_}) do
+          [] -> Mnesia.write({@table, client_name, []})
+          [_] -> {:error, :transaction_exists}
+        end
+      end)
+
+    result
+  end
+
+  @spec get(any()) :: t() | nil
+  def get(client_name) do
+    {:atomic, result} =
+      Mnesia.transaction(fn ->
+        case Mnesia.match_object({@table, client_name, :_}) do
+          [transaction] -> decode(transaction)
+          [] -> nil
+        end
+      end)
+
+    result
+  end
+
+  @spec delete(any()) :: :ok | {:error, atom()}
+  def delete(client_name) do
+    {:atomic, result} =
+      Mnesia.transaction(fn ->
+        case Mnesia.match_object({@table, client_name, :_}) do
+          [transaction] -> :ok = Mnesia.delete_object(transaction)
+          [] -> {:error, :transaction_not_found}
+        end
+      end)
+
+    result
+  end
+
+  @spec put_operation(any(), TokyoDB.Database.Operation.t()) :: :ok | {:error, atom()}
+  def put_operation(client_name, %Operation{} = operation) do
+    {:atomic, result} =
+      Mnesia.transaction(fn ->
+        case Mnesia.match_object({@table, client_name, :_}) do
+          [{_, _, operations}] ->
+            Mnesia.write({@table, client_name, [operation | operations]})
+
+          [] ->
+            {:error, :transaction_not_found}
+        end
+      end)
+
+    result
+  end
+
+  @spec exists?(any()) :: boolean()
+  def exists?(client_name) do
+    {:atomic, result} =
+      Mnesia.transaction(fn ->
+        match?([_], Mnesia.match_object({@table, client_name, :_}))
+      end)
+
+    result
+  end
+
+  @doc false
+  @spec decode(tuple()) :: t()
+  def decode({@table, client_name, operations}),
+    do: %@table{client_name: client_name, operations: operations}
+
+  @doc false
+  @spec encode(t()) :: tuple()
+  def encode(%@table{client_name: client_name, operations: operations}),
+    do: {@table, client_name, operations}
+
   @doc false
   def create_table do
     case Mnesia.create_table(@table,

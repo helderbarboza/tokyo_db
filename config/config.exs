@@ -31,10 +31,13 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 (
-  mnesia_dir_path = Path.expand(["~", "/.tokyo_db", "/#{to_string(Mix.env())}", "/mnesia"])
+  base_path = ["~", "/.tokyo_db", "/#{to_string(Mix.env())}"]
+  mnesia_dir_path = Path.expand(base_path ++ ["/mnesia"])
+  mnesia_snapshots_dir_path = Path.expand(base_path ++ ["/mnesia-snapshots"])
   File.exists?(mnesia_dir_path) || File.mkdir_p!(mnesia_dir_path)
 
   config :mnesia, :dir, to_charlist(mnesia_dir_path)
+  config :tokyo_db, snapshot_dir: to_charlist(mnesia_snapshots_dir_path)
 )
 
 # Import environment specific config. This must remain at the bottom

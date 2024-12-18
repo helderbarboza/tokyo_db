@@ -7,11 +7,11 @@ defmodule TokyoDB.Database.Operation do
 
   @type t :: %__MODULE__{
           type: :set,
-          key: any(),
+          key: String.t(),
           value: any()
         }
 
-  @spec build_set(any(), any()) :: t()
+  @spec build_set(String.t(), any()) :: t()
   def build_set(key, value) do
     %__MODULE__{type: :set, key: key, value: value}
   end

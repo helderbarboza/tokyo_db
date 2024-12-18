@@ -5,12 +5,14 @@ defmodule TokyoDB.Database.KV do
   require Logger
   alias :mnesia, as: Mnesia
 
+  @table __MODULE__
+
   defstruct [:key, :value]
 
-  @type key :: String.t()
-  @type value :: String.t() | integer() | boolean() | nil
-
-  @type t :: %__MODULE__{key: key, value: value}
+  @type t :: %__MODULE__{
+          key: String.t(),
+          value: String.t() | integer() | boolean() | nil
+        }
 
   defguardp is_key(value) when is_binary(value) and byte_size(value) > 0
 
@@ -19,8 +21,6 @@ defmodule TokyoDB.Database.KV do
 
   @impl true
   def init(state) do
-    setup_store()
-
     {:ok, state}
   end
 
@@ -38,12 +38,12 @@ defmodule TokyoDB.Database.KV do
   def get(key) when is_key(key) do
     result =
       Mnesia.transaction(fn ->
-        Mnesia.match_object({__MODULE__, key, :_})
+        Mnesia.match_object({@table, key, :_})
       end)
 
     case result do
       {:atomic, []} ->
-        decode({__MODULE__, key, nil})
+        decode({@table, key, nil})
 
       {:atomic, [item]} ->
         decode(item)
@@ -63,53 +63,35 @@ defmodule TokyoDB.Database.KV do
   def set(key, value) when is_key(key) and is_value(value) do
     {:atomic, {old_list, new_list}} =
       Mnesia.transaction(fn ->
-        old_list = Mnesia.match_object({__MODULE__, key, :_})
-        :ok = Mnesia.write({__MODULE__, key, value})
-        new_list = Mnesia.match_object({__MODULE__, key, :_})
+        old_list = Mnesia.match_object({@table, key, :_})
+        :ok = Mnesia.write({@table, key, value})
+        new_list = Mnesia.match_object({@table, key, :_})
 
         {old_list, new_list}
       end)
 
     {
-      decode(List.first(old_list, {__MODULE__, key, nil})),
-      decode(List.first(new_list, {__MODULE__, key, nil}))
+      decode(List.first(old_list, {@table, key, nil})),
+      decode(List.first(new_list, {@table, key, nil}))
     }
   end
 
   @spec decode(tuple()) :: t()
-  def decode({__MODULE__, key, value}),
-    do: %__MODULE__{key: key, value: value}
+  def decode({@table, key, value}),
+    do: %@table{key: key, value: value}
 
   @spec encode(t()) :: tuple()
-  def encode(%__MODULE__{key: key, value: value}),
-    do: {__MODULE__, key, value}
+  def encode(%@table{key: key, value: value}),
+    do: {@table, key, value}
 
-  defp setup_store do
-    Logger.debug("Setting up store...")
-
-    :ok = ensure_schema_exists()
-    :ok = Mnesia.start()
-    :ok = ensure_table_exists()
-
-    Logger.debug("...Store set up!")
-  end
-
-  defp ensure_schema_exists do
-    case Mnesia.create_schema([node()]) do
-      {:error, {_node, {:already_exists, __node}}} -> :ok
-      :ok -> :ok
-    end
-  end
-
-  defp ensure_table_exists do
-    case Mnesia.create_table(__MODULE__,
+  @doc false
+  def create_table do
+    case Mnesia.create_table(@table,
            attributes: [:key, :value],
            disc_only_copies: [node()]
          ) do
       {:atomic, :ok} -> :ok
-      {:aborted, {:already_exists, __MODULE__}} -> :ok
+      {:aborted, {:already_exists, @table}} -> :ok
     end
-
-    :ok = Mnesia.wait_for_tables([__MODULE__], 5000)
   end
 end

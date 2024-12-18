@@ -76,10 +76,12 @@ defmodule TokyoDB.Database.KV do
     }
   end
 
+  @doc false
   @spec decode(tuple()) :: t()
   def decode({@table, key, value}),
     do: %@table{key: key, value: value}
 
+  @doc false
   @spec encode(t()) :: tuple()
   def encode(%@table{key: key, value: value}),
     do: {@table, key, value}

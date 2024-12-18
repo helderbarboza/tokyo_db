@@ -1,7 +1,7 @@
 defmodule TokyoDB.CommandTest do
   use ExUnit.Case
-  doctest TokyoDB.Command
   alias TokyoDB.Command
+  doctest TokyoDB.Command
 
   describe "parse/1" do
     test ~S|parses `"abcd"` into `"abcd"`| do

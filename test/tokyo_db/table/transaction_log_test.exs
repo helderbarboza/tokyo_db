@@ -1,14 +1,10 @@
 defmodule TokyoDB.Table.TransactionLogTest do
   use ExUnit.Case
-  alias TokyoDB.Database
   alias TokyoDB.Table.TransactionLog
-  alias :mnesia, as: Mnesia
   doctest TokyoDB.Table.TransactionLog
 
   setup do
-    :stopped = Mnesia.stop()
-    :ok = Mnesia.delete_schema([node()])
-    Database.setup_store()
+    TestHelpers.reset()
   end
 
   describe "insert/1" do

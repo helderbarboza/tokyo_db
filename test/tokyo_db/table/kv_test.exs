@@ -1,6 +1,5 @@
 defmodule TokyoDB.Table.KVTest do
-  use ExUnit.Case, async: true
-  alias TokyoDB.Database
+  use ExUnit.Case
   alias TokyoDB.Table.KV
   alias TokyoDB.Table.TransactionLog
   alias TokyoDB.Table.TransactionLog.Operation
@@ -8,16 +7,7 @@ defmodule TokyoDB.Table.KVTest do
   doctest TokyoDB.Table.KV
 
   setup do
-    :stopped = Mnesia.stop()
-    :ok = Mnesia.delete_schema([node()])
-    Database.setup_store()
-  end
-
-  setup_all do
-    on_exit(fn ->
-      :stopped = Mnesia.stop()
-      :ok = Mnesia.delete_schema([node()])
-    end)
+    TestHelpers.reset()
   end
 
   describe "get/2 without transaction" do

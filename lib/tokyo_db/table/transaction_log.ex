@@ -18,10 +18,6 @@ defmodule TokyoDB.Table.TransactionLog do
     {:ok, state}
   end
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, %{}, opts)
-  end
-
   @spec insert(any()) :: :ok | {:error, atom()}
   def insert(client_name) do
     {:atomic, result} =
@@ -101,6 +97,11 @@ defmodule TokyoDB.Table.TransactionLog do
   @spec encode(t()) :: tuple()
   def encode(%@table{client_name: client_name, operations: operations}),
     do: {@table, client_name, operations}
+
+  @doc false
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, %{}, opts)
+  end
 
   @doc false
   def create_table do

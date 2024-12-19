@@ -39,7 +39,11 @@ defmodule TokyoDB.Table.KV do
   If there is no results, a default KV is returned instead, having `nil` as the
   value.
   """
-  @spec get(String.t(), String.t()) :: t()
+  @spec get(String.t(), any()) :: {:ok, t()}
+  def get(key, _client_name) when not is_key(key) do
+    {:error, {:invalid_key_type, key}}
+  end
+
   def get(key, client_name) when is_key(key) do
     do_get(key, client_name, TransactionLog.exists?(client_name))
   end
@@ -50,7 +54,15 @@ defmodule TokyoDB.Table.KV do
   Returns `{old_kv, new_kv}`. If there is no old state before the update,
   a default KV is returned instead, having `nil` as the value.
   """
-  @spec set(String.t(), boolean() | String.t() | integer(), String.t()) :: {t(), t()}
+  @spec set(String.t(), boolean() | String.t() | integer(), String.t()) :: {:ok, {t(), t()}}
+  def set(key, _value, _client_name) when not is_key(key) do
+    {:error, {:invalid_key_type, key}}
+  end
+
+  def set(_key, value, _client_name) when not is_value(value) do
+    {:error, {:invalid_value_type, value}}
+  end
+
   def set(key, value, client_name) when is_key(key) and is_value(value) do
     do_set(key, value, client_name, TransactionLog.exists?(client_name))
   end
@@ -65,13 +77,10 @@ defmodule TokyoDB.Table.KV do
 
     case result do
       {:atomic, []} ->
-        decode({@table, key, nil})
+        {:ok, decode({@table, key, nil})}
 
       {:atomic, [item]} ->
-        decode(item)
-
-      {:atomic, list} when is_list(list) ->
-        raise "expected zero or one results but got #{length(list)}"
+        {:ok, decode(item)}
     end
   end
 
@@ -79,36 +88,30 @@ defmodule TokyoDB.Table.KV do
     %TransactionLog{operations: operations} = TransactionLog.get!(client_name)
     computed = Operation.compute(operations)
 
-    kv =
-      case Map.get(computed, key) do
-        nil ->
-          result =
-            Mnesia.transaction(fn ->
-              Mnesia.match_object({@table, key, :_})
-            end)
+    case Map.get(computed, key) do
+      nil ->
+        result =
+          Mnesia.transaction(fn ->
+            Mnesia.match_object({@table, key, :_})
+          end)
 
-          case result do
-            {:atomic, []} ->
-              {@table, key, nil}
+        case result do
+          {:atomic, []} ->
+            {:ok, decode({@table, key, nil})}
 
-            {:atomic, [item]} ->
-              item
+          {:atomic, [item]} ->
+            {:ok, decode(item)}
+        end
 
-            {:atomic, list} when is_list(list) ->
-              raise "expected zero or one results but got #{length(list)}"
-          end
-
-        value ->
-          {@table, key, value}
-      end
-
-    decode(kv)
+      value ->
+        {:ok, decode({@table, key, value})}
+    end
   end
 
   defp do_set(key, value, client_name, in_transaction)
 
   defp do_set(key, value, _client_name, false) do
-    {:atomic, {old, new}} =
+    result =
       Mnesia.transaction(fn ->
         old =
           case Mnesia.match_object({@table, key, :_}) do
@@ -122,7 +125,10 @@ defmodule TokyoDB.Table.KV do
         {old, new}
       end)
 
-    {decode(old), decode(new)}
+    case result do
+      {:atomic, {old, new}} ->
+        {:ok, {decode(old), decode(new)}}
+    end
   end
 
   defp do_set(key, value, client_name, true) do
@@ -142,7 +148,7 @@ defmodule TokyoDB.Table.KV do
 
     :ok = TransactionLog.put_operation(client_name, Operation.build_set(key, value))
 
-    {decode(old), decode({@table, key, value})}
+    {:ok, {decode(old), decode({@table, key, value})}}
   end
 
   @doc false

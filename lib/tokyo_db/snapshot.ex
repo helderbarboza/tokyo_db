@@ -2,14 +2,13 @@ defmodule TokyoDB.Snapshot do
   @moduledoc """
   Manage snapshots of the database.
   """
-  @spec create(String.t()) :: list()
+  @spec create(String.t()) :: :ok
   def create(name) do
     path = build_path(name)
     base_path = Application.fetch_env!(:tokyo_db, :snapshot_dir)
     File.mkdir_p!(base_path)
 
-    :mnesia.backup(path)
-    view(name)
+    :ok = :mnesia.backup(to_charlist(path))
   end
 
   @spec view(String.t(), function()) :: [atom()]
@@ -26,7 +25,7 @@ defmodule TokyoDB.Snapshot do
 
     {:ok, snapshot} =
       :mnesia.traverse_backup(
-        path,
+        to_charlist(path),
         :mnesia_backup,
         :dummy,
         :read_only,
@@ -41,7 +40,7 @@ defmodule TokyoDB.Snapshot do
   def delete(name) do
     path = build_path(name)
 
-    File.rm(path)
+    :ok = File.rm(path)
   end
 
   defp build_path(name) do

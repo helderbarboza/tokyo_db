@@ -2,11 +2,23 @@ defmodule TokyoDBWeb.Router do
   use TokyoDBWeb, :router
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug :accepts, ["text/plain"]
+    plug :put_format, "text"
+    plug TokyoDBWeb.EnforceHeaderPlug
+    plug :assign_command_line
   end
 
-  scope "/api", TokyoDBWeb do
+  scope "/", TokyoDBWeb do
     pipe_through :api
+
+    post "/", CommandController, :run
+  end
+
+  def assign_command_line(conn, _opts) do
+    conn.body_params
+    |> Map.keys()
+    |> List.first()
+    |> then(&assign(conn, :command_line, &1))
   end
 
   # Enable LiveDashboard in development

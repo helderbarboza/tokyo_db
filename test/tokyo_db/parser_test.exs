@@ -1,47 +1,47 @@
 defmodule TokyoDB.ParserTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias TokyoDB.Parser
   doctest TokyoDB.Parser
 
-  describe "parse/1" do
+  describe "parse_token/1" do
     test ~S|parses `"abcd"` into `"abcd"`| do
-      assert Parser.parse("abcd") === "abcd"
+      assert Parser.parse_token("abcd") === "abcd"
     end
 
     test ~S|parses `"a10"` into `"a10"`| do
-      assert Parser.parse("a10") === "a10"
+      assert Parser.parse_token("a10") === "a10"
     end
 
     test ~S|parses `"\"uma string com espaços\""` into `"uma string com espaços"`| do
-      assert Parser.parse("\"uma string com espaços\"") === "uma string com espaços"
+      assert Parser.parse_token("\"uma string com espaços\"") === "uma string com espaços"
     end
 
     test ~S|parses `"\"teste\""` into `"teste"`| do
-      assert Parser.parse("\"teste\"") === "teste"
+      assert Parser.parse_token("\"teste\"") === "teste"
     end
 
     test ~S|parses `"101"` into `101`| do
-      assert Parser.parse("101") === 101
+      assert Parser.parse_token("101") === 101
     end
 
     test ~S|parses `"3.14"` into `"3.14"`| do
-      assert Parser.parse("3.14") === "3.14"
+      assert Parser.parse_token("3.14") === "3.14"
     end
 
     test ~S|parses `"\"TRUE\"" ` into `"TRUE"`| do
-      assert Parser.parse("\"TRUE\"") === "TRUE"
+      assert Parser.parse_token("\"TRUE\"") === "TRUE"
     end
 
     test ~S|parses `"TRUE" ` into `true`| do
-      assert Parser.parse("TRUE") === true
+      assert Parser.parse_token("TRUE") === true
     end
 
     test ~S|parses `"FALSE" ` into `false`| do
-      assert Parser.parse("FALSE") === false
+      assert Parser.parse_token("FALSE") === false
     end
 
     test ~S|parses `"NIL" ` into `nil`| do
-      assert Parser.parse("NIL") === nil
+      assert Parser.parse_token("NIL") === nil
     end
   end
 
@@ -75,7 +75,7 @@ defmodule TokyoDB.ParserTest do
     end
 
     test ~S|cannot split `"foo\"bar"` because of an unmatched quote`| do
-      assert Parser.split("foo\"bar") === :error
+      assert Parser.split("foo\"bar") === {:error, :unmatched_quote}
     end
   end
 end

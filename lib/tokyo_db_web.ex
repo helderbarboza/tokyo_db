@@ -37,9 +37,7 @@ defmodule TokyoDBWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: TokyoDBWeb.Layouts]
+      use Phoenix.Controller
 
       import Plug.Conn
 

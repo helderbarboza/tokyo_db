@@ -16,7 +16,7 @@ config :tokyo_db, TokyoDBWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [json: TokyoDBWeb.ErrorJSON],
+    formats: [text: TokyoDBWeb.ErrorText],
     layout: false
   ],
   pubsub_server: TokyoDB.PubSub,

@@ -1,10 +1,10 @@
-defmodule TokyoDB.Database.TransactionLog do
+defmodule TokyoDB.Table.TransactionLog do
   @moduledoc """
   Stores the transactions created by the clients.
   """
 
   use GenServer
-  alias TokyoDB.Database.TransactionLog.Operation
+  alias TokyoDB.Table.TransactionLog.Operation
   alias :mnesia, as: Mnesia
 
   @table __MODULE__

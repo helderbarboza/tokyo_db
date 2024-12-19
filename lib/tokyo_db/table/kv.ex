@@ -1,13 +1,13 @@
-defmodule TokyoDB.Database.KV do
+defmodule TokyoDB.Table.KV do
   @moduledoc """
   A `:mnesia` store for key-value data.
   """
 
   use GenServer
   require Logger
-  alias TokyoDB.Database.TransactionLog
-  alias TokyoDB.Database.TransactionLog.Operation
   alias TokyoDB.Snapshot
+  alias TokyoDB.Table.TransactionLog
+  alias TokyoDB.Table.TransactionLog.Operation
   alias :mnesia, as: Mnesia
 
   @table __MODULE__

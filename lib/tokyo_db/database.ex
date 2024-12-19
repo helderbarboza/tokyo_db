@@ -6,11 +6,11 @@ defmodule TokyoDB.Database do
   require Logger
   alias :mnesia, as: Mnesia
 
-  alias __MODULE__
+  alias TokyoDB.Table
 
   @doc "Lists tables available."
   def tables do
-    [Database.KV, Database.TransactionLog]
+    [Table.KV, Table.TransactionLog]
   end
 
   @doc "Starts Mnesia and checks if schema and tables are ready."

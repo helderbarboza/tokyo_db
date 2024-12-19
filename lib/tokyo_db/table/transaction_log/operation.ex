@@ -1,4 +1,4 @@
-defmodule TokyoDB.Database.TransactionLog.Operation do
+defmodule TokyoDB.Table.TransactionLog.Operation do
   @moduledoc """
   An operation to be used on transaction log.
   """

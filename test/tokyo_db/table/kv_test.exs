@@ -16,13 +16,13 @@ defmodule TokyoDB.Table.KVTest do
       value = "bar"
       write!(KV, key, value)
 
-      assert {:ok, %KV{key: ^key, value: ^value}} = KV.get(key, "angela")
+      assert {:ok, ^value} = KV.get(key, "angela")
     end
 
     test "gets a KV with `nil` as value when no match found" do
       key = "foo"
 
-      assert {:ok, %KV{key: ^key, value: nil}} = KV.get(key, "creed")
+      assert {:ok, nil} = KV.get(key, "creed")
     end
 
     test "gets a KV after the same key being updated twice" do
@@ -32,7 +32,7 @@ defmodule TokyoDB.Table.KVTest do
 
       write!(KV, key, value_before)
       write!(KV, key, value_after)
-      assert {:ok, %KV{key: ^key, value: ^value_after}} = KV.get(key, "jim")
+      assert {:ok, ^value_after} = KV.get(key, "jim")
     end
 
     test "gets a KV after other key being updated" do
@@ -43,7 +43,7 @@ defmodule TokyoDB.Table.KVTest do
 
       write!(KV, key_a, value_a)
       write!(KV, key_b, value_b)
-      assert {:ok, %KV{key: ^key_a, value: ^value_a}} = KV.get(key_a, "oscar")
+      assert {:ok, ^value_a} = KV.get(key_a, "oscar")
     end
   end
 
@@ -52,11 +52,7 @@ defmodule TokyoDB.Table.KVTest do
       key = "foo"
       value = "bar"
 
-      assert {:ok,
-              {
-                %KV{key: ^key, value: nil},
-                %KV{key: ^key, value: ^value}
-              }} = KV.set(key, value, "ryan")
+      assert {:ok, {nil, ^value}} = KV.set(key, value, "ryan")
     end
 
     test "sets an already existing KV" do
@@ -66,11 +62,7 @@ defmodule TokyoDB.Table.KVTest do
 
       write!(KV, key, value_before)
 
-      assert {:ok,
-              {
-                %KV{key: ^key, value: ^value_before},
-                %KV{key: ^key, value: ^value_after}
-              }} = KV.set(key, value_after, "stanley")
+      assert {:ok, {^value_before, ^value_after}} = KV.set(key, value_after, "stanley")
     end
 
     test "tries to set a value using invalid types" do
@@ -92,7 +84,7 @@ defmodule TokyoDB.Table.KVTest do
       # Sets a transaction log with no operations
       write!(TransactionLog, client, [])
 
-      assert {:ok, %KV{key: ^key, value: ^value}} = KV.get(key, client)
+      assert {:ok, ^value} = KV.get(key, client)
     end
 
     test "gets a the last value for a key that has been set inside of own transaction" do
@@ -107,7 +99,7 @@ defmodule TokyoDB.Table.KVTest do
       # Sets a transaction log with no operations
       write!(TransactionLog, client, [Operation.build_set(key, value_after)])
 
-      assert {:ok, %KV{key: ^key, value: ^value_after}} = KV.get(key, client)
+      assert {:ok, ^value_after} = KV.get(key, client)
     end
 
     test "gets a unchanged value outside of a transaction, while another client updates it inside their transaction" do
@@ -123,7 +115,7 @@ defmodule TokyoDB.Table.KVTest do
       # Sets a transaction log for client B with a set operation
       write!(TransactionLog, client_b, [Operation.build_set(key, value_after)])
 
-      assert {:ok, %KV{key: ^key, value: ^value_before}} = KV.get(key, client_a)
+      assert {:ok, ^value_before} = KV.get(key, client_a)
     end
 
     test "each client sees only their own changes inside their transactions" do
@@ -143,11 +135,11 @@ defmodule TokyoDB.Table.KVTest do
       write!(TransactionLog, client_b, [Operation.build_set(key, value_after_b)])
 
       # Assert that each client sees their own changes
-      assert {:ok, %KV{key: ^key, value: ^value_after_a}} = KV.get(key, client_a)
-      assert {:ok, %KV{key: ^key, value: ^value_after_b}} = KV.get(key, client_b)
+      assert {:ok, ^value_after_a} = KV.get(key, client_a)
+      assert {:ok, ^value_after_b} = KV.get(key, client_b)
 
       # Assert that clients outside transaction still see the original value
-      assert {:ok, %KV{key: ^key, value: ^value_before}} = KV.get(key, client_c)
+      assert {:ok, ^value_before} = KV.get(key, client_c)
     end
   end
 

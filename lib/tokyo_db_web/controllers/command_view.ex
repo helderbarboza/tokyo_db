@@ -2,12 +2,12 @@ defmodule TokyoDBWeb.CommandView do
   @moduledoc false
 
   @actions Enum.map(~w[rollback commit begin], &"#{&1}.text")
-  def get(%{result: result}) do
-    "#{result.value} "
+  def get(%{result: value}) do
+    "#{format_value(value)} "
   end
 
-  def set(%{result: result}) do
-    "#{result.old_kv.value} #{result.new_kv.value}"
+  def set(%{result: {old_value, new_value}}) do
+    "#{format_value(old_value)} #{format_value(new_value)}"
   end
 
   def render(action, _assigns) when action in @actions do
@@ -33,16 +33,26 @@ defmodule TokyoDBWeb.CommandView do
           "#{command_type} #{format_command_args(args)} - Syntax error"
 
         {:invalid_key_type, key} ->
-          "Value #{format(key)} is not valid as key"
+          "Value #{format_key(key)} is not valid as key"
 
         {:invalid_value_type, value} ->
-          "Cannot SET key to #{format(value)}"
+          "Cannot SET key to #{format_value(value)}"
       end
 
     "ERR \"#{message}\""
   end
 
-  defp format(term) do
+  defp format_key(term) do
+    term
+    |> inspect()
+    |> String.upcase()
+  end
+
+  defp format_value(term) when is_binary(term) do
+    term
+  end
+
+  defp format_value(term) do
     term
     |> inspect()
     |> String.upcase()

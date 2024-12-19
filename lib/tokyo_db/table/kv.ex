@@ -24,22 +24,12 @@ defmodule TokyoDB.Table.KV do
   defguardp is_value(value)
             when is_boolean(value) or is_binary(value) or is_integer(value)
 
-  @impl true
-  def init(state) do
-    {:ok, state}
-  end
-
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, %{}, opts)
-  end
-
   @doc """
   Fetches a KV pair.
 
-  If there is no results, a default KV is returned instead, having `nil` as the
-  value.
+  If there is no results, returns `nil` as the value.
   """
-  @spec get(String.t(), any()) :: {:ok, t()}
+  @spec get(String.t(), any()) :: {:ok, any()}
   def get(key, _client_name) when not is_key(key) do
     {:error, {:invalid_key_type, key}}
   end
@@ -51,10 +41,11 @@ defmodule TokyoDB.Table.KV do
   @doc """
   Sets the KV pair.
 
-  Returns `{old_kv, new_kv}`. If there is no old state before the update,
-  a default KV is returned instead, having `nil` as the value.
+  Returns `{old_value, new_value}`. If there is no old value before the update,
+  `nil` is returned instead.
   """
-  @spec set(String.t(), boolean() | String.t() | integer(), String.t()) :: {:ok, {t(), t()}}
+  @spec set(String.t(), boolean() | String.t() | integer(), String.t()) ::
+          {:ok, {any(), any()}}
   def set(key, _value, _client_name) when not is_key(key) do
     {:error, {:invalid_key_type, key}}
   end
@@ -76,11 +67,8 @@ defmodule TokyoDB.Table.KV do
       end)
 
     case result do
-      {:atomic, []} ->
-        {:ok, decode({@table, key, nil})}
-
-      {:atomic, [item]} ->
-        {:ok, decode(item)}
+      {:atomic, []} -> {:ok, nil}
+      {:atomic, [item]} -> {:ok, decode(item).value}
     end
   end
 
@@ -97,14 +85,14 @@ defmodule TokyoDB.Table.KV do
 
         case result do
           {:atomic, []} ->
-            {:ok, decode({@table, key, nil})}
+            {:ok, nil}
 
           {:atomic, [item]} ->
-            {:ok, decode(item)}
+            {:ok, decode(item).value}
         end
 
       value ->
-        {:ok, decode({@table, key, value})}
+        {:ok, value}
     end
   end
 
@@ -127,7 +115,7 @@ defmodule TokyoDB.Table.KV do
 
     case result do
       {:atomic, {old, new}} ->
-        {:ok, {decode(old), decode(new)}}
+        {:ok, {decode(old).value, decode(new).value}}
     end
   end
 
@@ -146,9 +134,11 @@ defmodule TokyoDB.Table.KV do
           {@table, key, value}
       end
 
+    decoded_old = decode(old)
+
     :ok = TransactionLog.put_operation(client_name, Operation.build_set(key, value))
 
-    {:ok, {decode(old), decode({@table, key, value})}}
+    {:ok, {decoded_old.value, value}}
   end
 
   @doc false
@@ -170,5 +160,16 @@ defmodule TokyoDB.Table.KV do
       {:atomic, :ok} -> :ok
       {:aborted, {:already_exists, @table}} -> :ok
     end
+  end
+
+  @impl true
+  @doc false
+  def init(state) do
+    {:ok, state}
+  end
+
+  @doc false
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, %{}, opts)
   end
 end

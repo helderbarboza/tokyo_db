@@ -13,7 +13,7 @@ defmodule TokyoDBWeb.CommandController do
 
     with {:ok, {cmd, args}} <- Parser.parse(command_line),
          {:ok, result} <- CommandHandler.handle(cmd, args, client_name) do
-      render(conn, cmd.type, result: result)
+      render(conn, cmd, result: result)
     else
       {:error, error} ->
         conn

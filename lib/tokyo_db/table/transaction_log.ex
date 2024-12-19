@@ -1,6 +1,6 @@
 defmodule TokyoDB.Table.TransactionLog do
   @moduledoc """
-  Stores the transactions created by the clients.
+  Stores the active transactions.
   """
 
   use GenServer

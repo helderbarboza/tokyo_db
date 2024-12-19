@@ -2,6 +2,10 @@ defmodule TokyoDB.Snapshot do
   @moduledoc """
   Manage snapshots of the database.
   """
+
+  @doc """
+  Creates and stores a backup of the database.
+  """
   @spec create(String.t()) :: :ok
   def create(name) do
     path = build_path(name)
@@ -11,6 +15,11 @@ defmodule TokyoDB.Snapshot do
     :ok = :mnesia.backup(to_charlist(path))
   end
 
+  @doc """
+  Reads a stored backup.
+
+  A `decode_fun` can also be provided to decode the entries.
+  """
   @spec view(String.t(), function()) :: [atom()]
   def view(name, decode_fun \\ & &1) do
     path = build_path(name)
@@ -36,6 +45,9 @@ defmodule TokyoDB.Snapshot do
     Enum.reverse(snapshot)
   end
 
+  @doc """
+  Deletes a stored backup.
+  """
   @spec delete(String.t()) :: :ok | {:error, atom()}
   def delete(name) do
     path = build_path(name)

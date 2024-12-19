@@ -1,6 +1,6 @@
 defmodule TokyoDB.Table.KV do
   @moduledoc """
-  A `:mnesia` store for key-value data.
+  A key-value store.
   """
 
   use GenServer

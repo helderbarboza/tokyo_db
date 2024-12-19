@@ -1,4 +1,6 @@
 defmodule TokyoDBWeb.CommandView do
+  @moduledoc false
+
   @actions Enum.map(~w[rollback commit begin], &"#{&1}.text")
   def get(%{result: result}) do
     "#{result.value} "

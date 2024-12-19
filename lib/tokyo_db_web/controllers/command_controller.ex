@@ -1,4 +1,8 @@
 defmodule TokyoDBWeb.CommandController do
+  @moduledoc """
+  Entry point for database commands.
+  """
+
   use TokyoDBWeb, :controller
 
   alias TokyoDB.CommandHandler

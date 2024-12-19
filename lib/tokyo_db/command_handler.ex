@@ -1,4 +1,9 @@
 defmodule TokyoDB.CommandHandler do
+  @moduledoc """
+  Handles incoming database commands and dispatches to their corresponding
+  specific handlers.
+  """
+
   alias TokyoDB.Table.KV
   alias TokyoDB.Transaction
 
@@ -29,6 +34,9 @@ defmodule TokyoDB.CommandHandler do
 
   def new(_type, _args), do: {:error, :unknown_command}
 
+  @doc """
+  Dispatches the structured command to their corresponding specific handler.
+  """
   @spec handle(t(), String.t()) :: {:ok, any()} | {:error, any()}
   def handle(command_handler, client_name)
 
@@ -59,6 +67,11 @@ defmodule TokyoDB.CommandHandler do
     end
   end
 
+  @doc """
+  Similar to `handle/2` but takes any error returned from the dispatched
+  function and raises a `RuntimeError`.
+  """
+  @spec handle!(TokyoDB.CommandHandler.t(), binary()) :: any()
   def handle!(command_handler, client_name) do
     case handle(command_handler, client_name) do
       {:ok, result} ->

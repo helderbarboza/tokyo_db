@@ -1,6 +1,6 @@
 defmodule TokyoDB.Table.TransactionLog.Operation do
   @moduledoc """
-  An operation to be used on transaction log.
+  A structure for individual operations within the transaction log.
   """
 
   defstruct [:type, :key, :value]

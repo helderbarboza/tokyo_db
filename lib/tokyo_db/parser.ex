@@ -1,6 +1,6 @@
 defmodule TokyoDB.Parser do
   @moduledoc """
-  Command parsing tools.
+  Parses and validates incoming database commands.
   """
   alias TokyoDB.CommandHandler
 

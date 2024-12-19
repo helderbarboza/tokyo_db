@@ -1,7 +1,8 @@
 defmodule TokyoDBWeb.EnforceHeaderPlug do
   @moduledoc """
-  Plug to enforce make `"x-client-name"` a required request header.
+  Plug to ensure that requests include the `"x-client-name"` header.
   """
+
   import Plug.Conn
   import Phoenix.Controller, only: [text: 2]
 

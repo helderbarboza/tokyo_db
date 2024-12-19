@@ -1,4 +1,8 @@
 defmodule TokyoDB.Transaction do
+  @moduledoc """
+  Database transactions management.
+  """
+
   alias TokyoDB.Database.TransactionLog
   alias TokyoDB.Snapshot
   alias TokyoDB.Table.TransactionLog

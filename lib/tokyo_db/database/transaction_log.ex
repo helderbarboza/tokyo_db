@@ -66,7 +66,7 @@ defmodule TokyoDB.Database.TransactionLog do
     result
   end
 
-  @spec put_operation(any(), TokyoDB.Database.Operation.t()) :: :ok | {:error, atom()}
+  @spec put_operation(any(), Operation.t()) :: :ok | {:error, atom()}
   def put_operation(client_name, %Operation{} = operation) do
     {:atomic, result} =
       Mnesia.transaction(fn ->

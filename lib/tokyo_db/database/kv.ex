@@ -1,8 +1,13 @@
 defmodule TokyoDB.Database.KV do
-  @moduledoc "A `:mnesia` store for key-value data"
+  @moduledoc """
+  A `:mnesia` store for key-value data.
+  """
 
   use GenServer
   require Logger
+  alias TokyoDB.Database.TransactionLog
+  alias TokyoDB.Database.TransactionLog.Operation
+  alias TokyoDB.Snapshot
   alias :mnesia, as: Mnesia
 
   @table __MODULE__
@@ -34,8 +39,25 @@ defmodule TokyoDB.Database.KV do
   If there is no results, a default KV is returned instead, having `nil` as the
   value.
   """
-  @spec get(binary()) :: t()
-  def get(key) when is_key(key) do
+  @spec get(String.t(), String.t()) :: t()
+  def get(key, client_name) when is_key(key) do
+    do_get(key, client_name, TransactionLog.exists?(client_name))
+  end
+
+  @doc """
+  Sets the KV pair.
+
+  Returns `{old_kv, new_kv}`. If there is no old state before the update,
+  a default KV is returned instead, having `nil` as the value.
+  """
+  @spec set(String.t(), boolean() | String.t() | integer(), String.t()) :: {t(), t()}
+  def set(key, value, client_name) when is_key(key) and is_value(value) do
+    do_set(key, value, client_name, TransactionLog.exists?(client_name))
+  end
+
+  defp do_get(key, client_name, in_transaction)
+
+  defp do_get(key, _client_name, false) do
     result =
       Mnesia.transaction(fn ->
         Mnesia.match_object({@table, key, :_})
@@ -53,27 +75,74 @@ defmodule TokyoDB.Database.KV do
     end
   end
 
-  @doc """
-  Sets the KV pair.
+  defp do_get(key, client_name, true) do
+    %TransactionLog{operations: operations} = TransactionLog.get!(client_name)
+    computed = Operation.compute(operations)
 
-  Returns `{old_kv, new_kv}`. If there is no old state before the update,
-  a default KV is returned instead, having `nil` as the value.
-  """
-  @spec set(binary(), boolean() | binary() | integer()) :: {t(), t()}
-  def set(key, value) when is_key(key) and is_value(value) do
-    {:atomic, {old_list, new_list}} =
+    kv =
+      case Map.get(computed, key) do
+        nil ->
+          result =
+            Mnesia.transaction(fn ->
+              Mnesia.match_object({@table, key, :_})
+            end)
+
+          case result do
+            {:atomic, []} ->
+              {@table, key, nil}
+
+            {:atomic, [item]} ->
+              item
+
+            {:atomic, list} when is_list(list) ->
+              raise "expected zero or one results but got #{length(list)}"
+          end
+
+        value ->
+          {@table, key, value}
+      end
+
+    decode(kv)
+  end
+
+  defp do_set(key, value, client_name, in_transaction)
+
+  defp do_set(key, value, _client_name, false) do
+    {:atomic, {old, new}} =
       Mnesia.transaction(fn ->
-        old_list = Mnesia.match_object({@table, key, :_})
-        :ok = Mnesia.write({@table, key, value})
-        new_list = Mnesia.match_object({@table, key, :_})
+        old =
+          case Mnesia.match_object({@table, key, :_}) do
+            [] -> {@table, key, nil}
+            [old] -> old
+          end
 
-        {old_list, new_list}
+        :ok = Mnesia.write({@table, key, value})
+        [new] = Mnesia.match_object({@table, key, :_})
+
+        {old, new}
       end)
 
-    {
-      decode(List.first(old_list, {@table, key, nil})),
-      decode(List.first(new_list, {@table, key, nil}))
-    }
+    {decode(old), decode(new)}
+  end
+
+  defp do_set(key, value, client_name, true) do
+    %TransactionLog{operations: operations} = TransactionLog.get!(client_name)
+    computed = Operation.compute(operations)
+
+    old =
+      case Map.get(computed, key) do
+        nil ->
+          client_name
+          |> Snapshot.view()
+          |> Enum.find(&match?({@table, ^key, _value}, &1))
+
+        value ->
+          {@table, key, value}
+      end
+
+    :ok = TransactionLog.put_operation(client_name, Operation.build_set(key, value))
+
+    {decode(old), decode({@table, key, value})}
   end
 
   @doc false

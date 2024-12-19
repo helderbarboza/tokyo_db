@@ -37,7 +37,7 @@ config :phoenix, :json_library, Jason
   File.exists?(mnesia_dir_path) || File.mkdir_p!(mnesia_dir_path)
 
   config :mnesia, :dir, to_charlist(mnesia_dir_path)
-  config :tokyo_db, snapshot_dir: to_charlist(mnesia_snapshots_dir_path)
+  config :tokyo_db, snapshot_dir: mnesia_snapshots_dir_path
 )
 
 # Import environment specific config. This must remain at the bottom

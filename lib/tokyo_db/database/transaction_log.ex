@@ -4,7 +4,7 @@ defmodule TokyoDB.Database.TransactionLog do
   """
 
   use GenServer
-  alias TokyoDB.Database.Operation
+  alias TokyoDB.Database.TransactionLog.Operation
   alias :mnesia, as: Mnesia
 
   @table __MODULE__
@@ -46,6 +46,11 @@ defmodule TokyoDB.Database.TransactionLog do
       end)
 
     result
+  end
+
+  @spec get!(any()) :: t()
+  def get!(client_name) do
+    get(client_name) || raise RuntimeError, message: "no transactions found"
   end
 
   @spec delete(any()) :: :ok | {:error, atom()}

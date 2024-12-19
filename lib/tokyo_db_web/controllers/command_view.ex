@@ -14,7 +14,7 @@ defmodule TokyoDBWeb.CommandView do
 
   def error(assigns) do
     message =
-      case assigns.reason do
+      case assigns.error do
         :transaction_exists ->
           "Already in transaction"
 
@@ -23,6 +23,9 @@ defmodule TokyoDBWeb.CommandView do
 
         :unknown_command ->
           "No command #{command_type(assigns.command_line)}"
+
+        :empty_command ->
+          "Empty command"
 
         {:syntax_error, command_type, args} ->
           "#{command_type} #{format_command_args(args)} - Syntax error"

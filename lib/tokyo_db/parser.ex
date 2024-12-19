@@ -25,18 +25,21 @@ defmodule TokyoDB.Parser do
       iex> Parser.parse("INFO")
       {:error, :unknown_command}
 
+      iex> Parser.parse("   ")
+      {:error, :empty_command}
+
   """
   @spec parse(binary()) ::
           {:error, :unknown_command | :unmatched_quote} | {:ok, CommandHandler.t()}
   def parse(string) do
-    case split_and_parse(string) do
+    case split_and_parse_tokens(string) do
       {:ok, [command | args]} ->
-        CommandHandler.new(
-          String.upcase(command),
-          args
-        )
+        CommandHandler.new(String.upcase(command), args)
 
-      {:error, :unmatched_quote} = err ->
+      {:ok, []} ->
+        {:error, :empty_command}
+
+      {:error, _} = err ->
         err
     end
   end
@@ -85,14 +88,6 @@ defmodule TokyoDB.Parser do
     end
   end
 
-  @spec split_and_parse(binary()) :: {:error, :unmatched_quote} | {:ok, list()}
-  def split_and_parse(string) do
-    case split(string) do
-      {:ok, tokens} -> {:ok, Enum.map(tokens, &parse_token/1)}
-      {:error, :unmatched_quote} = err -> err
-    end
-  end
-
   @doc """
   Splits a command into a list of tokens.
 
@@ -122,6 +117,12 @@ defmodule TokyoDB.Parser do
 
       _ ->
         {:error, :unmatched_quote}
+    end
+  end
+
+  defp split_and_parse_tokens(string) do
+    with {:ok, [h | t]} <- split(string) do
+      {:ok, [h | Enum.map(t, &parse_token/1)]}
     end
   end
 end

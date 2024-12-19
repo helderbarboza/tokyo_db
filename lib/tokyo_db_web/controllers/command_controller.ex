@@ -11,8 +11,10 @@ defmodule TokyoDBWeb.CommandController do
          {:ok, result} <- CommandHandler.handle(command, client_name) do
       render(conn, command.type, result: result)
     else
-      {:error, reason} ->
-        render(conn, :error, reason: reason)
+      {:error, error} ->
+        conn
+        |> put_status(:internal_server_error)
+        |> render(:error, error: error)
     end
   end
 end

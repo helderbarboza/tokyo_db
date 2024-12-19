@@ -19,7 +19,7 @@ defmodule TokyoDBWeb.Router do
   def assign_command_line(conn, _opts) do
     conn.body_params
     |> Map.keys()
-    |> List.first()
+    |> List.first("")
     |> then(&assign(conn, :command_line, &1))
   end
 

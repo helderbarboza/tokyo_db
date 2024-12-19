@@ -52,10 +52,20 @@ defmodule TokyoDB.CommandHandler do
     Transaction.rollback(client_name)
   end
 
-  # Catch all function clauses returning syntax error
+  # Catches all function clauses, returning syntax error
   for {string, atom, args} <- @command_map do
     def handle(%{type: unquote(atom), args: _}, _client_name) do
       {:error, {:syntax_error, unquote(string), unquote(args)}}
+    end
+  end
+
+  def handle!(command_handler, client_name) do
+    case handle(command_handler, client_name) do
+      {:ok, result} ->
+        result
+
+      {:error, reason} ->
+        raise RuntimeError, message: "Command execution failed: #{inspect(reason)}"
     end
   end
 end

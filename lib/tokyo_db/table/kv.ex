@@ -140,7 +140,7 @@ defmodule TokyoDB.Table.KV do
         nil ->
           client_name
           |> Snapshot.view()
-          |> Enum.find(&match?({@table, ^key, _value}, &1))
+          |> Enum.find({@table, key, nil}, &match?({@table, ^key, _value}, &1))
 
         value ->
           {@table, key, value}

@@ -4,7 +4,7 @@ defmodule TokyoDB.Database.TransactionLogTest do
   alias TokyoDB.Database.TransactionLog
   alias :mnesia, as: Mnesia
 
-  setup_all do
+  setup do
     :stopped = Mnesia.stop()
     :ok = Mnesia.delete_schema([node()])
     TokyoDB.Database.setup_store()

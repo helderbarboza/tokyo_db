@@ -1,4 +1,6 @@
 defmodule TokyoDBWeb.Endpoint do
+  @moduledoc false
+
   use Phoenix.Endpoint, otp_app: :tokyo_db
 
   # The session will be stored in the cookie and signed,

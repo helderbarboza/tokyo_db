@@ -1,4 +1,6 @@
 defmodule TokyoDBWeb.Router do
+  @moduledoc false
+
   use TokyoDBWeb, :router
 
   pipeline :api do

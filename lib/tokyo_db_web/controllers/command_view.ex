@@ -1,15 +1,15 @@
 defmodule TokyoDBWeb.CommandView do
   @actions Enum.map(~w[rollback commit begin], &"#{&1}.text")
-  def get(assigns) do
-    kv = assigns.result
-
-    "#{kv.value} "
+  def get(%{result: result}) do
+    "#{result.value} "
   end
 
-  def set(assigns) do
-    {old_kv, new_kv} = assigns.result
+  def set(%{result: result}) do
+    "#{result.old_kv.value} #{result.new_kv.value}"
+  end
 
-    "#{old_kv.value} #{new_kv.value}"
+  def render(action, _assigns) when action in @actions do
+    "OK"
   end
 
   def error(assigns) do
@@ -38,10 +38,6 @@ defmodule TokyoDBWeb.CommandView do
       end
 
     "ERR \"#{message}\""
-  end
-
-  def render(action, _assigns) when action in @actions do
-    "OK"
   end
 
   defp format(term) do

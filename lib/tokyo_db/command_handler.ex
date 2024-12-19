@@ -15,54 +15,53 @@ defmodule TokyoDB.CommandHandler do
     {"ROLLBACK", :rollback, []}
   ]
 
-  defstruct [:type, :args]
-
-  @type t :: %__MODULE__{type: atom(), args: [any()]}
+  @typedoc "Command-arguments tuple."
+  @type ca :: {atom(), [any()]}
 
   @doc """
   Builds a command struct.
   """
-  @spec new(any()) :: {:error, :unknown_command} | {:ok, t()}
-  @spec new(any(), any()) :: {:error, :unknown_command} | {:ok, t()}
-  def new(type, args \\ [])
+  @spec new(any()) :: {:error, :unknown_command} | {:ok, ca()}
+  @spec new(any(), any()) :: {:error, :unknown_command} | {:ok, ca()}
+  def new(cmd, arg_names \\ [])
 
-  for {string, atom, _arity} <- @command_map do
+  for {string, atom, _arg_names} <- @command_map do
     def new(unquote(string), args) do
-      {:ok, %__MODULE__{type: unquote(atom), args: args}}
+      {:ok, {unquote(atom), args}}
     end
   end
 
-  def new(_type, _args), do: {:error, :unknown_command}
+  def new(_cmd, _arg_names), do: {:error, :unknown_command}
 
   @doc """
   Dispatches the structured command to their corresponding specific handler.
   """
-  @spec handle(t(), String.t()) :: {:ok, any()} | {:error, any()}
-  def handle(command_handler, client_name)
+  @spec handle(atom(), [any()], String.t()) :: {:ok, any()} | {:error, any()}
+  def handle(cmd, args, client_name)
 
-  def handle(%{type: :get, args: [key]}, client_name) do
+  def handle(:get, [key], client_name) do
     KV.get(key, client_name)
   end
 
-  def handle(%{type: :set, args: [key, value]}, client_name) do
+  def handle(:set, [key, value], client_name) do
     KV.set(key, value, client_name)
   end
 
-  def handle(%{type: :begin, args: []}, client_name) do
+  def handle(:begin, [], client_name) do
     Transaction.begin(client_name)
   end
 
-  def handle(%{type: :commit, args: []}, client_name) do
+  def handle(:commit, [], client_name) do
     Transaction.commit(client_name)
   end
 
-  def handle(%{type: :rollback, args: []}, client_name) do
+  def handle(:rollback, [], client_name) do
     Transaction.rollback(client_name)
   end
 
   # Catches all function clauses, returning syntax error
   for {string, atom, args} <- @command_map do
-    def handle(%{type: unquote(atom), args: _}, _client_name) do
+    def handle(unquote(atom), _args, _client_name) do
       {:error, {:syntax_error, unquote(string), unquote(args)}}
     end
   end
@@ -71,9 +70,9 @@ defmodule TokyoDB.CommandHandler do
   Similar to `handle/2` but takes any error returned from the dispatched
   function and raises a `RuntimeError`.
   """
-  @spec handle!(TokyoDB.CommandHandler.t(), binary()) :: any()
-  def handle!(command_handler, client_name) do
-    case handle(command_handler, client_name) do
+  @spec handle!(atom(), [any()], String.t()) :: any()
+  def handle!(cmd, args, client_name) do
+    case handle(cmd, args, client_name) do
       {:ok, result} ->
         result
 

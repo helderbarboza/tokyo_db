@@ -14,10 +14,10 @@ defmodule TokyoDB.Parser do
   Parses the given command line into a `TokyoDB.CommandHandler` struct.
 
       iex> Parser.parse("GET \\"The answer\\"")
-      {:ok, %TokyoDB.CommandHandler{type: :get, args: ["The answer"]}}
+      {:ok, {:get, ["The answer"]}}
 
       iex> Parser.parse("SET 1 2 3")
-      {:ok, %TokyoDB.CommandHandler{type: :set, args: [1, 2, 3]}}
+      {:ok, {:set, [1, 2, 3]}}
 
       iex> Parser.parse("SET \\"I'm\\"Wrong!\\"")
       {:error, :unmatched_quote}
@@ -30,7 +30,7 @@ defmodule TokyoDB.Parser do
 
   """
   @spec parse(binary()) ::
-          {:error, :unknown_command | :unmatched_quote} | {:ok, CommandHandler.t()}
+          {:error, :unknown_command | :unmatched_quote} | {:ok, CommandHandler.ca()}
   def parse(string) do
     case split_and_parse_tokens(string) do
       {:ok, [command | args]} ->

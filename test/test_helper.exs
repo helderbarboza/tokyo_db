@@ -17,11 +17,13 @@ defmodule TestHelpers do
   end
 
   def delete_backups do
-    @snapshot_dir
-    |> File.ls!()
-    |> Enum.filter(&(&1 =~ ~r/\.bak$/))
-    |> Enum.map(&Path.join(@snapshot_dir, &1))
-    |> Enum.each(&File.rm!/1)
+    case File.ls(@snapshot_dir) do
+      {:ok, files} ->
+        files
+        |> Enum.filter(&(&1 =~ ~r/\.bak$/))
+        |> Enum.map(&Path.join(@snapshot_dir, &1))
+        |> Enum.each(&File.rm!/1)
+    end
   end
 end
 

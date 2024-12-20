@@ -20,6 +20,9 @@ defmodule TokyoDB.Database do
     :ok = ensure_schema_exists()
     :ok = Mnesia.start()
 
+    snapshot_dir = Application.fetch_env!(:tokyo_db, :snapshot_dir)
+    File.mkdir_p!(snapshot_dir)
+
     for module <- tables() do
       :ok = module.create_table()
       :ok = Mnesia.wait_for_tables([module], 5000)

@@ -49,4 +49,16 @@ defmodule TokyoDB.CommandHandlerTest do
     assert 1 == CH.handle!(:get, ["teste"], "A")
     assert 1 == CH.handle!(:get, ["teste"], "B")
   end
+
+  test "COMMIT: if the value read on transaction has been changed, the commit fails" do
+    assert {:ok, nil} == CH.handle(:get, ["teste"], "A")
+    assert {:ok, nil} == CH.handle(:get, ["teste"], "B")
+    assert {:ok, nil} == CH.handle(:begin, [], "A")
+    assert {:ok, {nil, 1}} == CH.handle(:set, ["teste", 1], "A")
+    assert {:ok, nil} == CH.handle(:get, ["teste"], "B")
+    assert {:ok, 1} == CH.handle(:get, ["teste"], "A")
+    assert {:ok, {nil, 10}} == CH.handle(:set, ["teste", 10], "B")
+    assert {:error, {:atomicity_failure, "teste"}} == CH.handle(:commit, [], "A")
+    assert {:ok, 10} == CH.handle(:get, ["teste"], "A")
+  end
 end

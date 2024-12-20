@@ -71,6 +71,7 @@ defmodule TokyoDB.ParserTest do
     end
 
     test ~S|splits `"\"foo bar\" \"baz qux\""` into `["\"foo bar\"", "\"baz qux\""]`| do
+      # credo:disable-for-next-line
       assert Parser.split("\"foo bar\" \"baz qux\"") === {:ok, ["\"foo bar\"", "\"baz qux\""]}
     end
 

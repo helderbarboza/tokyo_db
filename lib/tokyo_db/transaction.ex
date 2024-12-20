@@ -9,29 +9,21 @@ defmodule TokyoDB.Transaction do
 
   @spec begin(any()) :: {:error, atom()} | {:ok, nil}
   def begin(client_name) do
-    case TransactionLog.insert(client_name) do
-      :ok ->
-        Snapshot.create(client_name)
-        {:ok, nil}
-
-      {:error, _} = err ->
-        err
+    with :ok <- TransactionLog.insert(client_name) do
+      Snapshot.create(client_name)
+      {:ok, nil}
     end
   end
 
   @spec rollback(any()) :: {:error, atom()} | {:ok, nil}
   def rollback(client_name) do
-    case TransactionLog.delete(client_name) do
-      :ok ->
-        Snapshot.delete(client_name)
-        {:ok, nil}
-
-      {:error, _} = err ->
-        err
+    with :ok <- TransactionLog.delete(client_name) do
+      Snapshot.delete(client_name)
+      {:ok, nil}
     end
   end
 
-  def commit(_client_name), do: raise("TODO")
+  defdelegate commit(client_name), to: TransactionLog
 
   defdelegate in_transaction?(client_name), to: TransactionLog, as: :exists?
 end

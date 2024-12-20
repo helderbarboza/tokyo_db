@@ -17,11 +17,9 @@ defmodule TokyoDB.Snapshot do
 
   @doc """
   Reads a stored backup.
-
-  A `decode_fun` can also be provided to decode the entries.
   """
-  @spec view(String.t(), function()) :: [atom()]
-  def view(name, decode_fun \\ & &1) do
+  @spec view(String.t()) :: [atom()]
+  def view(name) do
     path = build_path(name)
 
     view_fun = fn
@@ -29,7 +27,7 @@ defmodule TokyoDB.Snapshot do
         {[], acc}
 
       {tab, key, value}, acc ->
-        {[tab, key, value], [decode_fun.({tab, key, value}) | acc]}
+        {[tab, key, value], [{tab, key, value} | acc]}
     end
 
     {:ok, snapshot} =

@@ -25,6 +25,7 @@ defmodule TokyoDB.CommandHandler do
   @spec new(any(), any()) :: {:error, :unknown_command} | {:ok, ca()}
   def new(cmd, arg_names \\ [])
 
+  # credo:disable-for-next-line
   for {string, atom, _arg_names} <- @command_map do
     def new(unquote(string), args) do
       {:ok, {unquote(atom), args}}
@@ -60,6 +61,7 @@ defmodule TokyoDB.CommandHandler do
   end
 
   # Catches all function clauses, returning syntax error
+  # credo:disable-for-next-line
   for {string, atom, args} <- @command_map do
     def handle(unquote(atom), _args, _client_name) do
       {:error, {:syntax_error, unquote(string), unquote(args)}}

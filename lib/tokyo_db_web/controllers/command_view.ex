@@ -37,6 +37,9 @@ defmodule TokyoDBWeb.CommandView do
 
         {:invalid_value_type, value} ->
           "Cannot SET key to #{format_value(value)}"
+
+        {:atomicity_failure, key} ->
+          "Atomicity failure (#{key})"
       end
 
     "ERR \"#{message}\""

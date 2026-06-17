@@ -31,7 +31,7 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 (
-  base_path = ["~", "/.tokyo_db", "/#{to_string(Mix.env())}"]
+  base_path = ["/app", "/.tokyo_db", "/#{to_string(Mix.env())}"]
   mnesia_dir_path = Path.expand(base_path ++ ["/mnesia"])
   mnesia_snapshots_dir_path = Path.expand(base_path ++ ["/mnesia-snapshots"])
   File.exists?(mnesia_dir_path) || File.mkdir_p!(mnesia_dir_path)

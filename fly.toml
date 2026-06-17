@@ -11,12 +11,14 @@ kill_signal = 'SIGTERM'
 
 [env]
   PHX_HOST = 'tokyo-db.fly.dev'
-  PORT = '8080'
+  PORT = '4444'
+  RELEASE_NODE = 'tokyo_db'
+  RELEASE_DISTRIBUTION = 'sname'
 
 [http_service]
   internal_port = 4444
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']

@@ -74,7 +74,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 WORKDIR "/app"
-RUN chown nobody /app
+RUN chown nobody /app && mkdir -p /app/.tokyo_db/prod/mnesia && chown -R nobody:nogroup /app/.tokyo_db
 
 # set runner ENV
 ENV MIX_ENV="prod"
